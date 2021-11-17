@@ -1,0 +1,41 @@
+# This workflow will build a docker image and push it to github packages
+
+name: Docker CI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  push_to_registry:
+    name: Build and Push Docker image to GitHub Packages.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Prepare Build Info
+        id: prep
+        run: |
+          echo ::set-output name=version::${GITHUB_REF#refs/*/}
+          echo ::set-output name=image::docker.pkg.github.com/brendagft/simpleweb/simpleweb
+      - name: Login to github docker packages registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: "${{ steps.prep.outputs.image }}:${{ steps.prep.outputs.version }}"
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            org.opencontainers.image.revision=${{ github.sha }}
+          build-args: |
+            ACS_PACKAGES_USERNAME=${{ secrets.ACS_PACKAGES_USERNAME }}
+            ACS_PACKAGES_PASSWORD=${{ secrets.ACS_PACKAGES_PASSWORD }}
+            GITHUB_RELEASE_VERSION=${{ steps.prep.outputs.version }}

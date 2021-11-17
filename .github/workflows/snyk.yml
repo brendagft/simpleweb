@@ -1,0 +1,35 @@
+name: Snyk
+
+on:
+  pull_request:
+
+jobs:
+  snyk-python:
+    name: Run Snyk on Python
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run Snyk to check for python vulnerabilities
+      uses: snyk/actions/python@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_ACV }}
+
+  snyk-docker:
+    name: Run Snyk on Docker Image
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: docker/build-push-action@v2
+      with:
+        context: .
+        tags: test:latest
+        push: false
+    - name: Run Snyk to check Docker image for vulnerabilities
+      uses: snyk/actions/docker@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN_ACV }}
+      with:
+        image: test:latest
+        args: --file=Dockerfile
