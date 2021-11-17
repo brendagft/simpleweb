@@ -1,0 +1,12 @@
+{
+    "name": "simple-restserver",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "dependencies": {
+        "express": "*"
+    },
+    "scripts": {
+        "start": "node index.js"
+    }
+}
